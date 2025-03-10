@@ -1,6 +1,6 @@
-# Time Series Analysis Mastery in R
+# Time Series Analysis in R
 
-This repository showcases my deep understanding of time series analysis using R, demonstrated through a series of challenging assignments. It contains eight key files—four for assignment questions and four for their corresponding solutions—each focusing on real-world datasets and applying advanced statistical and spectral analysis techniques.
+This repository showcases my understanding of time series analysis using R, demonstrated through a series of challenging assignments. It contains eight key files—four for assignment questions and four for their corresponding solutions—each focusing on real-world datasets and applying advanced statistical and spectral analysis techniques.
 
 
 ## Assignment Breakdown
