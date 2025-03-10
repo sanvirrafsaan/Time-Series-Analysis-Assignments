@@ -1,0 +1,144 @@
+---
+title: "Assignment3"
+author: "Rafsaan Sanvir"
+date: "2024-11-11"
+output: word_document
+---
+
+```{r}
+fatal <- scan("fatalities.txt")
+fatal = ts(fatal, start = c(1960,1), end = c(1974, 12), freq = 12)
+fatal = log(fatal)
+library(stlplus)
+```
+
+Let's use a seasonal diagnostic plot to pick an s window 
+```{r}
+diag1 = stlplus(fatal, s.window = 19, robust = TRUE)
+plot_seasonal(diag1)
+diag2 = stlplus(fatal, s.window = 31, robust = TRUE)
+plot_seasonal(diag2)
+```
+For the data above, s.window = 31 gives us a much smoother estimate of each cycle 
+subseries compared to s.window = 19, where the line is the seasonal values minus 
+their mean. So we can pick 31 to be a good s.window. I have also experimented with
+s.window = 7, 14 and then 19 which all carry a lot of noise.
+
+According to the research paper, we need t.window > (1.5 * period)/(1-1.5 (s.window)^-1). 
+RHS of the equation with s.window = 31 and freq = 12 is approx 18.91 . We can pick 
+a t.window greater than 19 so let's pick one that is fairly smooth, t=25. 
+More emphasis on the 2nd graph (for r2). 
+
+
+```{r}
+r = stl(fatal, s.window = 23, t.window = 19, robust = T)
+plot(r)
+r2 = stl(fatal, s.window = 31, t.window = 25 , robust = T)
+plot(r2)
+r <- stl(fatal,s.window = "periodic", t.window = 19, robust = T) # seasonal periodic
+plot(r)
+r <- stl(fatal,s.window = "periodic", t.window = 29, robust = T) # seasonal periodic
+plot(r)
+```
+We can see that the irregular component is close to white noise, with random 
+spikes around zero (and a few very big spikes). 
+Let's use some white noise tests just to confirm - 
+
+H0: data is white noise 
+HA: data is not white noise 
+```{r}
+remainder = r2$time.series[, "remainder"]
+Box.test(remainder)
+```
+Since p value is pretty large, we fail to reject H0 and conclude H0, that the 
+data is white noise. This is expected as the seasonal and trend components both 
+seem to capture the cyclical component in the data as well as the slow trend 
+upwards pretty well, leaving the remainder to be white noise. 
+
+
+b) 
+The seasonal component does a good job of capturing the seasonality in the data, 
+where we can see 5 spikes every 5 years, corresponding to a yearly cycle in data. 
+The trend component also captures the slow increase in fatalities over time, so 
+the irregular component is close to white noise. We can still see a few large 
+spikes in the data, which might reflect events not captured yet. If these spikes 
+are on specific dates corresponding to holidays or important events, then a 
+calender component could be useful 
+Howver, these spikes could also be random, at which point they could be classified 
+as outliers.
+
+________________________________________________________________________________
+2
+
+```{r}
+speech <- ts(scan("speech.txt"),frequency=10000)
+```
+since 1020 items are read and sampling frequency is 10,000. Our data covers 
+approximately 0.102 second 
+
+```{r}
+r = spec.ar(speech) #yule walker default code 
+r = spec.ar(speech, method = "burg") #picks burg estimate
+r = spec.ar(speech, order = 30)
+```
+The first method uses Yule-Walker estimates using AIC to select model order 18, 
+and the second method uses Burg estimates using AIC to also select model order 18. 
+But usually for autoregressive spec density estimates, Burg estimates have smaller 
+bias than Yule walker. Then we can see that an overfitted AR(30) model gives us a 
+more noisier estimate (higher variance but lower bias). 
+
+Also, the data has approximately 2 local maxima
+
+b) 
+```{r}
+library(multitaper)
+spec.mtm(speech, nw =10, k =19, lwd =2)
+spec.mtm(speech, nw =15, k =29, lwd =2)
+spec.mtm(speech, nw = 20, k = 39, lwd =2)
+
+```
+As time-bandwidth product increases, we can see that we get a less noisy, smoother 
+graph but with lost resolution at the spikes where the top of the spikes seem 
+more flat and less sharp. Let's compare nw= 15 graph to ar burg estimate since we 
+can see that the burg estimate is smoother than nw = 10, but less noisy than nw = 20
+
+```{r}
+r = spec.ar(speech, method = "burg", plot = F, order = 18)
+spec.mtm(speech, nw =15, k =29, lwd =2)
+lines(r$freq, r$spec, lwd=2, col="blue")
+
+```
+our multi taper estimate here is smoother, and closer to the ar(18) spectral 
+density estimate, capturing the peaks well with a little loss of resolution at 
+the top of the peaks. 
+
+c) 
+For the parzen window, M can be choosen by a correlogram of the data. If it decays 
+to 0 after a certain lag s0, we can try an M < s0
+```{r}
+speech = ts(scan("speech.txt"),frequency=10000)
+acf(speech, lag.max = 10000, main = "ACF of Speech Data")
+```
+The acf decays to 0 probably after 0.1, equating to a lag of 
+0.1 * 10000 = 1000. not very useful information since we only have 1020 data pts 
+so let's try different values of M and experiment
+
+```{r}
+source("spec.parzen.txt")
+for (M in c(40, 55, 70)){
+  spec.parzen(speech,lag.max=M,plot=T)
+}
+spec.ar(speech, main = "raw periodogram", order = 18, method = "burg")
+```
+
+We can see that M = 55 gives us a good estimate of the periodogram, capturing the 
+first 2 peaks in the periodogram without too much noise like in the case of M=70.
+
+d) the dominant frequencies are approximately at frequencies 700 hz and 1400 hz,
+with  a smaller peak at 2100. 1400 and 2100 are harmonics of the 700 fundamental 
+frequency,  corresponding to a cycle of 1/700 = 0.0014 cycle per second, and so 
+on for the rest of the harmonics. 
+
+
+
+

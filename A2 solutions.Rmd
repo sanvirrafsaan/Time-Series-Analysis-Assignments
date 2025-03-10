@@ -1,0 +1,181 @@
+---
+title: "Assignment2"
+author: "Rafsaan Sanvir"
+date: "2024-10-08"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+library(readr)
+dollar <- scan("dollar.txt")
+dollar <- ts(log(dollar))
+```
+
+1a) Augmented Dickey Fuller test 
+H0: Time series is non-stationary
+Ha: Time series is stationary 
+```{r}
+library(tseries)
+adf.test(dollar,k=1)
+adf.test(dollar,k=3)
+adf.test(dollar,k=5)
+adf.test(dollar,k=10)
+```
+Since p value > 0.05, we fail to reject null hypothesis and conclude H0, that 
+the time series is non-stationary. The null hypothesis for Augmented Dickey-Fuller 
+test implies that the time series data dollar has a unit root present. This holds 
+for lags 1 through 10 (and likely higher)
+
+
+b) Ljung-box tests on first difference and absolute first difference
+H0: data is white noise 
+HA: data is not white noise 
+```{r}
+first_diff = diff(dollar)
+abs_first_diff = abs(first_diff)
+
+Box.test(first_diff)
+Box.test(abs_first_diff)
+```
+For both the first and absolute first differences of the exchange rate data, 
+we have a p value smaller than 0.05 so we reject null hypothesis and conclude with
+alternative hypothesis, that neither of the data is white noise. 
+
+Barlett test on first differences 
+H0 : Data is white noise 
+HA: Data is not white noise 
+```{r}
+source("bartlett.txt")
+bartlett(first_diff)
+bartlett(abs_first_diff)
+#bartlett(first_diff,plot=T)
+
+```
+We can see that the p values of the bartlett tests for both first difference and
+absolute first differences ae less than 0.05, so we reject the null hypothesis 
+at the 95% confidence level, meaning neither of the data is white noise. 
+
+Let's use a graphical method to double check:
+```{r}
+bartlett(first_diff,plot=T)
+bartlett(abs_first_diff,plot=T)
+```
+The p value for first differences isn't terribly smaller than 0.05, so we can say 
+that the data isn't very far from white noise ( we reject H0 at 5% Confidence level 
+since 0.05 > 0.04, but fail to reject H0 at 3% Cofidence level since 0.04 < 0.03)
+The p value for the absolute first differences is very small, indicating that it 
+is not white noise.
+
+The cumulative periodogram above would categorize first differences data as white noise 
+since most of the data is within the confidence bands (and in a straight line), 
+and categorize the absolute first differences as not white noise, since the data 
+points deviate from the confidence bands at the beginning of the graph
+
+
+c) Let's fit AR(1) and ARMA(1, 1) model to absolute first differences. 
+```{r}
+ar1_model = arima(abs_first_diff, order = c(1, 0, 0))
+arma11_model = arima(abs_first_diff, order = c(1, 0, 1))
+```
+
+To check which model is better, Let's use AIC and BIC 
+```{r}
+ar1_model$aic
+arma11_model$aic
+
+BIC(ar1_model)
+BIC(arma11_model)
+```
+We can see that the AIC and BIC of the arma(1,1) model is lower, meaning it is a
+better model than AR(1). Although AR(1) and ARMA(1, 1) have different number of 
+parameters, AIC and BIC takes that into account and adds an approprite penalty. 
+
+Now check if residuals close to white noise.
+```{r}
+bartlett(ar1_model$residuals)
+bartlett(arma11_model$residuals)
+Box.test(ar1_model$residuals, fitdf = 1, lag = 10)
+Box.test(arma11_model$residuals, fitdf = 2, lag = 10)
+```
+This is interesting! so for ar(1)model , we get a very small p value indicating 
+that we reject the white noise hypothesis and the model residuals arent white 
+noise. For arma(1,1) model, we get a p value much larger than even 0.05, meaning 
+we conclude that the residuals are white noise. 
+
+In a perfect world, AIC and BIC would give us the best model but the ultimate 
+test of whether the model is a good fit is whether the residuals of the model 
+resemble white noise. 
+Conclusion: arma(1,1) model is the better model.
+
+
+
+2
+```{r}
+tides <- scan("tides.txt")
+tides <- ts(tides,frequency=24)
+```
+
+2a) Let's use AIC to select a model 
+```{r}
+ar_tides = ar.burg(tides, aic = T, order.max = NULL)
+ar_tides
+```
+This code automatically selects the model using the lowest AIC and gives us the 
+coefficients of each autoregressive parameter as shown above. Let's fir AR(38) model 
+
+```{r}
+spec.ar(ar_tides)
+```
+This AR series seems to point to some seasonality in the data at 1, 2, 3... and 
+so on.
+
+2b) Let's look at the residuals, since a good model should have residuals that 
+are close to white noise. 
+
+```{r}
+ar_tides$resid[1:50]
+```
+We can see that the first p=38 residuals are undefined, so let's define residuals 
+after the 37th entry, and run some tests 
+
+```{r}
+residuals = ar_tides$resid[39:length(tides)]
+Box.test(residuals, lag = 50, fitdf = 37)
+bartlett(residuals, plot = T)
+```
+For ljung box test and bartlett tests, we assume the following hypothesis- 
+H0: data is white noise 
+HA: data is not white noise 
+
+So since p value is lower than 0.05 for both tests, we reject H0 and conclude 
+HA, that the data is not white noise. Let's further confirm with graphical methods
+
+```{r}
+acf(residuals)
+pacf(residuals)
+```
+We can see significant spikes for both acf and pacf of residuals especially around
+lag 20-30, which further confirms that the data is not white noise, since white 
+noise correlogram decays very quickly and stays close to 0. 
+Also, note that it contains some underlying seasonal component and structure, which
+is not random and this pattern will be reflected on the periodogram. The spectral 
+density function will be distorted as it assumes that our AR(38) model has 
+residuals modelling white noise which is not the case here. 
+
+
+Let's analyze the variance of the residuals vs our original tides data 
+```{r}
+var(tides)
+var(residuals)
+```
+Since the variance of residuals significantly smaller than the variance in original
+model, this indicates that our AR(38) model explains most of the variation in the 
+tides data, and we have a decent model to fit our tides data. 
+
+
+
+
+
+
+
+
