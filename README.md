@@ -6,7 +6,7 @@ This repository showcases my understanding of time series analysis using R, demo
 ## Assignment Breakdown
 
 ### **Assignment 1: Exchange Rates & CO₂ Trends**
-- **Files:** `a1_questions.R` and `a1_solutions.R`
+- **Files:** `a1 question` and `a1 solutions`
 - **Overview:**  
   - **Exchange Rates:** Analysis of daily Canadian/U.S. dollar exchange rates using log transformations, differencing, correlograms, and periodograms to evaluate autocorrelation, spectral properties, and the random walk hypothesis.
   - **CO₂ Trends:** Investigation of average monthly atmospheric CO₂ concentrations at Mauna Loa. This includes spectral analysis to identify seasonal peaks and detrending to emphasize seasonality.
@@ -17,7 +17,7 @@ This repository showcases my understanding of time series analysis using R, demo
   - Spectral density estimation
 
 ### **Assignment 2: Stationarity Testing & Tidal Analysis**
-- **Files:** `a2_questions.R` and `a2_solutions.R`
+- **Files:** `a2 questions` and `a2 solutions`
 - **Overview:**  
   - **Exchange Rate Stationarity:** Application of the Augmented Dickey-Fuller (ADF) test to assess unit roots, along with Ljung-Box and Bartlett tests on first differences and absolute returns to check for white noise properties.
   - **Tidal Data Analysis:** Analysis of hourly tide heights from Sooke Basin by fitting AR models with order selection via AIC, and verifying residuals to ensure robust spectral density estimation.
@@ -28,7 +28,7 @@ This repository showcases my understanding of time series analysis using R, demo
   - Model diagnostics and spectral analysis
 
 ### **Assignment 3: Seasonal Adjustment & Speech Signal Processing**
-- **Files:** `a3_questions.R` and `a3_solutions.R`
+- **Files:** `a3 questions` and `a3 solutions`
 - **Overview:**  
   - **Traffic Fatalities:** Seasonal adjustment of monthly traffic fatality data in Ontario using STL decomposition. This includes isolating trend, seasonal, and irregular components, and evaluating the irregular component against white noise.
   - **Speech Signal Analysis:** High-frequency analysis of a speech signal (sampled at 10,000 Hz) using various spectral density estimation techniques—AR-based, multitaper, and Parzen lag window methods—to identify dominant frequencies.
@@ -39,7 +39,7 @@ This repository showcases my understanding of time series analysis using R, demo
   - Frequency domain analysis
 
 ### **Assignment 4: Stock Price Modeling & Volatility Analysis**
-- **Files:** `a4_questions.R` and `a4_solutions.R`
+- **Files:** `a4 questions` and `a4 solutions`
 - **Overview:**  
   - **Stock Price Modeling:** Analysis of daily stock prices (log-transformed) for Barrick Gold using ARIMA models (ARIMA(0,1,1) and ARIMA(0,1,2)) to capture non-stationary behavior and trends.
   - **Volatility Analysis:** Application of ARCH and GARCH models to the residuals from the preferred ARIMA model, comparing model performance to capture volatility dynamics accurately.
